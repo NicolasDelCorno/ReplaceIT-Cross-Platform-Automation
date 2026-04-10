@@ -1,0 +1,35 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+.Python
+*.egg-info/
+dist/
+build/
+
+# Pytest
+.pytest_cache/
+
+# Environment variables
+.env
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# JetBrains IDE
+.idea/
+
+# Claude Code
+.claude/
+
+# Personal notes
+Notes/
+TEST_CASES.md
+
+# Generated test artifacts (screenshots, videos, HTML reports)
+reports/
