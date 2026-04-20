@@ -2,7 +2,7 @@
 
 End-to-end test automation for [replaceit.ai](https://replaceit.ai), an AI services company. The suite covers the full public website across **web** (Playwright) and **mobile browsers** (Appium on iOS and Android), using the **Page Object Model** pattern throughout.
 
-**34 test cases** across 5 areas: Navigation, Home, Services, About Us, and Contact.
+**46 test cases** across 7 areas: Navigation, Home, Services, About Us, Contact, Footer & Compliance, and Cross-cutting Quality Gates.
 
 ---
 
@@ -61,6 +61,8 @@ replaceit/
 | 3 | Services Page | 11 — hero, 8 service cards, each "Apply now" link |
 | 4 | About Us Page | 2 — hero, gallery section |
 | 5 | Contact Page | 8 — form fields, validation, submission, contact details |
+| 6 | Footer & Compliance | 6 — legal/policy anchors + social links |
+| 7 | Quality Gates | 5 — console errors + unknown route behavior |
 
 See [TEST_CASES.md](TEST_CASES.md) for the full catalogue with descriptions.
 

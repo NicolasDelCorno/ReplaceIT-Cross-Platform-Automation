@@ -2,14 +2,11 @@ import pytest
 from pages.about_page import AboutPage
 
 
-BASE_URL = "https://replaceit.ai"
-
-
 @pytest.mark.ui
 class TestAboutPage:
     @pytest.fixture(autouse=True)
-    def load_page(self, page):
-        page.goto(f"{BASE_URL}/quienes-somos", wait_until="networkidle")
+    def load_page(self, page, base_url):
+        page.goto(f"{base_url}/quienes-somos", wait_until="networkidle")
         self.about = AboutPage(page)
 
     def test_hero_heading_visible(self):

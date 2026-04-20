@@ -5,6 +5,12 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 class BasePage:
+    SOCIAL_LINKS = {
+        "instagram": "https://www.instagram.com/",
+        "facebook": "https://www.facebook.com/",
+        "linkedin": "https://www.linkedin.com/company/replaceit/",
+    }
+
     def __init__(self, driver):
         self.driver = driver
         self.wait = WebDriverWait(driver, 10)
@@ -47,6 +53,29 @@ class BasePage:
             self.driver.execute_script(f"window.scrollTo(0, {pos});")
             time.sleep(0.3)
             total_height = self.driver.execute_script("return document.body.scrollHeight")
+
+    # ── Footer ─────────────────────────────────────────────────────────────────
+
+    def get_footer_link(self, href):
+        self.scroll_to_bottom()
+        return self.wait.until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, f"footer a[href='{href}']"))
+        )
+
+    def click_privacy_policy(self):
+        self.scroll_to_bottom()
+        link = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "a[href='#priv']")))
+        self.js_click(link)
+
+    def click_cookie_policy(self):
+        self.scroll_to_bottom()
+        link = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "a[href='#cookies']")))
+        self.js_click(link)
+
+    def click_terms_and_conditions(self):
+        self.scroll_to_bottom()
+        link = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "a[href='#term']")))
+        self.js_click(link)
 
     # ── Navigation ─────────────────────────────────────────────────────────────
 

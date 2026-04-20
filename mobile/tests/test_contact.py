@@ -2,14 +2,11 @@ import pytest
 from pages.contact_page import ContactPage
 
 
-BASE_URL = "https://replaceit.ai"
-
-
 @pytest.mark.mobile
 class TestContactPage:
     @pytest.fixture(autouse=True)
-    def load_page(self, driver):
-        driver.get(f"{BASE_URL}/contacto")
+    def load_page(self, driver, base_url):
+        driver.get(f"{base_url}/contacto")
         self.contact = ContactPage(driver)
 
     def test_hero_heading_visible(self):
@@ -29,20 +26,25 @@ class TestContactPage:
     def test_phone_link_present(self):
         assert self.contact.get_phone_link().is_displayed()
 
-    def test_submit_empty_form_stays_on_page(self):
+    def test_submit_empty_form_stays_on_page(self, base_url):
         self.contact.submit_form()
-        assert self.contact.current_url() == f"{BASE_URL}/contacto"
+        assert self.contact.current_url() == f"{base_url}/contacto"
+        assert self.contact.element_check_validity(self.contact.get_name_field()) is False
+        assert self.contact.element_check_validity(self.contact.get_email_field()) is False
+        assert self.contact.element_check_validity(self.contact.get_reason_field()) is False
 
-    def test_submit_with_invalid_email(self):
+    def test_submit_with_invalid_email(self, base_url):
         self.contact.fill_form(name="Test User", email="not-an-email", reason="Testing")
         self.contact.submit_form()
-        assert self.contact.current_url() == f"{BASE_URL}/contacto"
+        assert self.contact.current_url() == f"{base_url}/contacto"
+        assert self.contact.element_check_validity(self.contact.get_email_field()) is False
 
-    def test_submit_valid_form(self):
+    def test_submit_valid_form(self, base_url):
         self.contact.fill_form(
             name="Test User",
             email="test@example.com",
             reason="Automated test submission",
         )
         self.contact.submit_form()
-        assert f"{BASE_URL}/contacto" in self.contact.current_url()
+        assert f"{base_url}/contacto" in self.contact.current_url()
+        assert self.contact.get_success_banner().is_displayed()

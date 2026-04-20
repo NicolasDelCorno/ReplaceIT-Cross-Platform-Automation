@@ -2,14 +2,11 @@ import pytest
 from pages.contact_page import ContactPage
 
 
-BASE_URL = "https://replaceit.ai"
-
-
 @pytest.mark.ui
 class TestContactPage:
     @pytest.fixture(autouse=True)
-    def load_page(self, page):
-        page.goto(f"{BASE_URL}/contacto", wait_until="networkidle")
+    def load_page(self, page, base_url):
+        page.goto(f"{base_url}/contacto", wait_until="networkidle")
         self.contact = ContactPage(page)
 
     def test_hero_heading_visible(self):
@@ -29,23 +26,28 @@ class TestContactPage:
     def test_phone_link_present(self):
         assert self.contact.get_phone_link().is_visible()
 
-    def test_submit_empty_form_stays_on_page(self, page):
+    def test_submit_empty_form_stays_on_page(self, page, base_url):
         self.contact.submit_form()
-        assert page.url == f"{BASE_URL}/contacto"
+        assert page.url == f"{base_url}/contacto"
+        # Strengthen: ensure native HTML validation marks required fields invalid
+        assert self.contact.get_name_field().evaluate("el => el.matches(':invalid')") is True
+        assert self.contact.get_email_field().evaluate("el => el.matches(':invalid')") is True
+        assert self.contact.get_reason_field().evaluate("el => el.matches(':invalid')") is True
 
-    def test_submit_with_invalid_email(self, page):
+    def test_submit_with_invalid_email(self, page, base_url):
         self.contact.fill_form(name="Test User", email="not-an-email", reason="Testing")
         self.contact.submit_form()
         # Browser native validation should block submission
-        assert page.url == f"{BASE_URL}/contacto"
+        assert page.url == f"{base_url}/contacto"
+        assert self.contact.get_email_field().evaluate("el => el.matches(':invalid')") is True
 
-    def test_submit_valid_form(self, page):
+    def test_submit_valid_form(self, page, base_url):
         self.contact.fill_form(
             name="Test User",
             email="test@example.com",
             reason="Automated test submission",
         )
         self.contact.submit_form()
-        # After a valid submission the page should show a success state or stay on /contacto
-        # Update this assertion once the actual success behaviour is confirmed
-        assert f"{BASE_URL}/contacto" in page.url
+        assert f"{base_url}/contacto" in page.url
+        self.contact.wait_for_success_banner()
+        assert self.contact.get_success_banner().is_visible()

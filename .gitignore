@@ -12,6 +12,7 @@ build/
 
 # Pytest
 .pytest_cache/
+failures.json
 
 # Environment variables
 .env

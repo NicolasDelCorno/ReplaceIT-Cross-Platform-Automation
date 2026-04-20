@@ -7,6 +7,7 @@ EXPECTED_SERVICES = [
     "Computer Vision",
     "Process Automation",
     "Generative AI",
+    "Document Processing",
     "Recommendation Systems",
     "NLP & Sentiment Analysis",
 ]

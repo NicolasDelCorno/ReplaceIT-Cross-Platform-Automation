@@ -9,6 +9,7 @@ EXPECTED_SERVICES_IOS = [
     "Computer Vision",
     "Process Automation",
     "Generative AI",
+    "Document Processing",
     "Recommendation Systems",
     "NLP & Sentiment Analysis",
 ]
@@ -46,8 +47,10 @@ class ServicesPage(BasePage):
             "return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)")
         step = 400
         pos = 0
+        no_new_count = 0
+        prev_heading_count = 0
 
-        while pos <= total_height + step:
+        while pos <= total_height + 2 * step:
             self.driver.execute_script(f"window.scrollTo(0, {pos});")
             time.sleep(0.3)
 
@@ -74,6 +77,15 @@ class ServicesPage(BasePage):
                         seen_link_hrefs.add(key)
                         links.append(el)
 
+            current_heading_count = len(headings)
+            if current_heading_count == prev_heading_count:
+                no_new_count += 1
+                if no_new_count >= 3:
+                    break
+            else:
+                no_new_count = 0
+            prev_heading_count = current_heading_count
+
             pos += step
             total_height = self.driver.execute_script(
                 "return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)")
@@ -96,7 +108,7 @@ class ServicesPage(BasePage):
         pos = 0
         count = 0
 
-        while pos <= total_height + step:
+        while pos <= total_height + 2 * step:
             self.driver.execute_script(f"window.scrollTo(0, {pos});")
             time.sleep(0.3)
 

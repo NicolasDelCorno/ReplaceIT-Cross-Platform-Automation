@@ -2,14 +2,11 @@ import pytest
 from pages.home_page import HomePage
 
 
-BASE_URL = "https://replaceit.ai"
-
-
 @pytest.mark.mobile
 class TestHomePage:
     @pytest.fixture(autouse=True)
-    def load_page(self, driver):
-        driver.get(BASE_URL)
+    def load_page(self, driver, base_url):
+        driver.get(base_url)
         self.home = HomePage(driver)
         self.driver = driver
 
@@ -25,7 +22,7 @@ class TestHomePage:
     def test_engagement_section_visible(self):
         assert self.home.get_engagement_section().is_displayed()
 
-    def test_view_services_cta_navigates(self):
+    def test_view_services_cta_navigates(self, base_url):
         self.home.click_view_services()
-        self.home.wait_for_url(f"{BASE_URL}/servicios")
-        assert self.driver.current_url == f"{BASE_URL}/servicios"
+        self.home.wait_for_url(f"{base_url}/servicios")
+        assert self.driver.current_url == f"{base_url}/servicios"

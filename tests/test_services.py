@@ -2,14 +2,11 @@ import pytest
 from pages.services_page import ServicesPage, EXPECTED_SERVICES
 
 
-BASE_URL = "https://replaceit.ai"
-
-
 @pytest.mark.ui
 class TestServicesPage:
     @pytest.fixture(autouse=True)
-    def load_page(self, page):
-        page.goto(f"{BASE_URL}/servicios", wait_until="networkidle")
+    def load_page(self, page, base_url):
+        page.goto(f"{base_url}/servicios", wait_until="networkidle")
         self.services = ServicesPage(page)
 
     def test_hero_heading_visible(self):
@@ -25,10 +22,10 @@ class TestServicesPage:
         assert len(apply_links) == len(EXPECTED_SERVICES)
 
     @pytest.mark.parametrize("index", range(len(EXPECTED_SERVICES)))
-    def test_apply_now_navigates_to_contact(self, page, index):
+    def test_apply_now_navigates_to_contact(self, page, base_url, index):
         # Re-load page for each parametrized run since navigation changes the URL
-        page.goto(f"{BASE_URL}/servicios", wait_until="networkidle")
+        page.goto(f"{base_url}/servicios", wait_until="networkidle")
         services = ServicesPage(page)
         services.click_apply_now(index)
-        page.wait_for_url(f"{BASE_URL}/contacto")
-        assert page.url == f"{BASE_URL}/contacto"
+        page.wait_for_url(f"{base_url}/contacto")
+        assert page.url == f"{base_url}/contacto"

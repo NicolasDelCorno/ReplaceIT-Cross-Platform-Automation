@@ -38,13 +38,22 @@ class BasePage:
         return self.page.locator(f"footer a[href='{href}']")
 
     def click_privacy_policy(self):
-        self.page.locator("a[href='#priv']").click()
+        link = self.page.locator("footer a[href='#priv']").first
+        self.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+        link.scroll_into_view_if_needed()
+        link.click(force=True)
 
     def click_cookie_policy(self):
-        self.page.locator("a[href='#cookies']").click()
+        link = self.page.locator("footer a[href='#cookies']").first
+        self.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+        link.scroll_into_view_if_needed()
+        link.click(force=True)
 
     def click_terms_and_conditions(self):
-        self.page.locator("a[href='#term']").click()
+        link = self.page.locator("footer a[href='#term']").first
+        self.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+        link.scroll_into_view_if_needed()
+        link.click(force=True)
 
     # ── Helpers ────────────────────────────────────────────────────────────────
 

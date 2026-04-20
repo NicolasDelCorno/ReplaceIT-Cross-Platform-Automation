@@ -2,14 +2,11 @@ import pytest
 from pages.about_page import AboutPage
 
 
-BASE_URL = "https://replaceit.ai"
-
-
 @pytest.mark.mobile
 class TestAboutPage:
     @pytest.fixture(autouse=True)
-    def load_page(self, driver):
-        driver.get(f"{BASE_URL}/quienes-somos")
+    def load_page(self, driver, base_url):
+        driver.get(f"{base_url}/quienes-somos")
         self.about = AboutPage(driver)
 
     def test_hero_heading_visible(self):

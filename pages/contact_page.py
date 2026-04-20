@@ -2,6 +2,8 @@ from pages.base_page import BasePage
 
 
 class ContactPage(BasePage):
+    SUCCESS_BANNER_TEXT = "Thank you! Your details have been sent successfully"
+
     def get_hero_heading(self):
         return self.page.locator("h1").first.inner_text().strip()
 
@@ -27,6 +29,13 @@ class ContactPage(BasePage):
 
     def submit_form(self):
         self.get_send_button().click()
+
+    def get_success_banner(self):
+        # Keep selector flexible: assert on the user-visible text
+        return self.page.get_by_text(self.SUCCESS_BANNER_TEXT, exact=False).first
+
+    def wait_for_success_banner(self, timeout_ms: int = 15000):
+        self.get_success_banner().wait_for(state="visible", timeout=timeout_ms)
 
     def get_contact_email_link(self):
         return self.page.locator("a[href='mailto:hello@replace.com.ar']")

@@ -1,9 +1,13 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 from pages.base_page import BasePage
 
 
 class ContactPage(BasePage):
+    SUCCESS_BANNER_TEXT = "Thank you! Your details have been sent successfully"
+    SUCCESS_BANNER_KEYWORD = "Thank you"
+
     def get_hero_heading(self):
         return self.get_h1()
 
@@ -46,4 +50,16 @@ class ContactPage(BasePage):
             field.send_keys(reason)
 
     def submit_form(self):
-        self.get_send_button().click()
+        self.js_click(self.get_send_button())
+
+    def get_success_banner(self):
+        locator = (By.XPATH, f"//*[contains(normalize-space(), '{self.SUCCESS_BANNER_KEYWORD}')]")
+        long_wait = WebDriverWait(self.driver, 20)
+        element = long_wait.until(EC.presence_of_element_located(locator))
+        self.scroll_to(element)
+        long_wait.until(EC.visibility_of(element))
+        return element
+
+    def element_check_validity(self, element):
+        # HTML5 validity; returns True/False (works for mobile browsers too)
+        return self.driver.execute_script("return arguments[0].checkValidity();", element)

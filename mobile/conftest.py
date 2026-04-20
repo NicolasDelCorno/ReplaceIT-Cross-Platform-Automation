@@ -1,12 +1,20 @@
 import os
 import pytest
+import json
 from datetime import datetime
 from appium import webdriver
 from appium.options.android.uiautomator2.base import UiAutomator2Options
 from appium.options.ios.xcuitest.base import XCUITestOptions
+from dotenv import load_dotenv
+
+load_dotenv()
 
 APPIUM_SERVER = "http://127.0.0.1:4723"
-BASE_URL = "https://replaceit.ai"
+
+
+@pytest.fixture(scope="session")
+def base_url():
+    return os.getenv("BASE_URL", "https://replaceit.ai").rstrip("/")
 
 # Maps normalized test node IDs to TC numbers from TEST_CASES.md
 TC_MAP = {
@@ -16,10 +24,10 @@ TC_MAP = {
     "test_navigation.py::TestNavigation::test_nav_about_link":                                                      "TC1-3",
     "test_navigation.py::TestNavigation::test_nav_contact_link":                                                    "TC1-4",
     "test_navigation.py::TestNavigation::test_logo_navigates_home":                                                 "TC1-5",
-    "test_navigation.py::TestNavigation::test_all_pages_load[/-https://replaceit.ai/]":                             "TC1-6",
-    "test_navigation.py::TestNavigation::test_all_pages_load[/servicios-https://replaceit.ai/servicios]":           "TC1-7",
-    "test_navigation.py::TestNavigation::test_all_pages_load[/quienes-somos-https://replaceit.ai/quienes-somos]":  "TC1-8",
-    "test_navigation.py::TestNavigation::test_all_pages_load[/contacto-https://replaceit.ai/contacto]":            "TC1-9",
+    "test_navigation.py::TestNavigation::test_all_pages_load[/]":                                                   "TC1-6",
+    "test_navigation.py::TestNavigation::test_all_pages_load[/servicios]":                                          "TC1-7",
+    "test_navigation.py::TestNavigation::test_all_pages_load[/quienes-somos]":                                     "TC1-8",
+    "test_navigation.py::TestNavigation::test_all_pages_load[/contacto]":                                           "TC1-9",
     # 2. Home Page
     "test_home.py::TestHomePage::test_hero_heading_visible":                                                        "TC2-1",
     "test_home.py::TestHomePage::test_clients_section_visible":                                                     "TC2-2",
@@ -50,6 +58,13 @@ TC_MAP = {
     "test_contact.py::TestContactPage::test_submit_empty_form_stays_on_page":                                       "TC5-6",
     "test_contact.py::TestContactPage::test_submit_with_invalid_email":                                             "TC5-7",
     "test_contact.py::TestContactPage::test_submit_valid_form":                                                     "TC5-8",
+    # 6. Footer & Compliance
+    "test_footer.py::TestFooter::test_privacy_policy_link_works":                                                   "TC6-1",
+    "test_footer.py::TestFooter::test_cookie_policy_link_works":                                                    "TC6-2",
+    "test_footer.py::TestFooter::test_terms_and_conditions_link_works":                                             "TC6-3",
+    "test_footer.py::TestFooter::test_social_links_present_in_footer[instagram]":                                   "TC6-4",
+    "test_footer.py::TestFooter::test_social_links_present_in_footer[facebook]":                                    "TC6-5",
+    "test_footer.py::TestFooter::test_social_links_present_in_footer[linkedin]":                                    "TC6-6",
 }
 
 
@@ -57,6 +72,36 @@ def _tc(nodeid: str) -> str:
     """Return the TC label for a test node ID, e.g. 'TC1-1'. Falls back to 'TCx'."""
     normalized = nodeid.split("/")[-1]
     return TC_MAP.get(normalized, "TCx")
+
+
+def _safe_longrepr(report) -> str:
+    try:
+        return report.longreprtext
+    except Exception:
+        try:
+            return str(report.longrepr)
+        except Exception:
+            return ""
+
+
+def pytest_sessionfinish(session, exitstatus):
+    config = session.config
+    payload = {
+        "schema_version": 1,
+        "suite": "mobile",
+        "run_started_at": getattr(config, "_run_started_at", None),
+        "exitstatus": exitstatus,
+        "base_url": os.getenv("BASE_URL", "https://replaceit.ai").rstrip("/"),
+        "platform": config.getoption("--platform", default="ios"),
+        "failures": getattr(config, "_failures", []),
+    }
+
+    try:
+        root_path = os.path.join(os.path.dirname(__file__), "..", "failures.json")
+        with open(root_path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
 
 
 def pytest_configure(config):
@@ -69,6 +114,9 @@ def pytest_configure(config):
     reports_dir = os.path.join(os.path.dirname(__file__), "..", "reports", platform_label)
     os.makedirs(reports_dir, exist_ok=True)
     config.option.htmlpath = os.path.join(reports_dir, f"Report-{platform_label}-{timestamp}.html")
+    # Session-level failure collector written at the end of the run.
+    config._failures = []
+    config._run_started_at = timestamp
 
 
 def pytest_addoption(parser):
@@ -119,6 +167,29 @@ def driver(request):
 def pytest_runtest_makereport(item):
     outcome = yield
     report = outcome.get_result()
+
+    # Record failures/errors into failures.json (covers setup/call/teardown)
+    if report.failed:
+        config = item.config
+        nodeid = report.nodeid
+        tc = _tc(nodeid)
+        started_at = getattr(config, "_run_started_at", None)
+        entry = {
+            "nodeid": nodeid,
+            "tc": tc,
+            "when": report.when,
+            "outcome": report.outcome,
+            "message": getattr(report, "longreprcrash", None).message if getattr(report, "longreprcrash", None) else None,
+            "longrepr": _safe_longrepr(report),
+            "timestamp": datetime.now().isoformat(timespec="seconds"),
+            "run_started_at": started_at,
+            "base_url": os.getenv("BASE_URL", "https://replaceit.ai").rstrip("/"),
+            "platform": config.getoption("--platform", default="ios"),
+        }
+        try:
+            config._failures.append(entry)
+        except Exception:
+            pass
 
     if report.when == "call" and "driver" in item.funcargs:
         driver = item.funcargs["driver"]

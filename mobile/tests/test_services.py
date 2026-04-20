@@ -2,9 +2,6 @@ import pytest
 from pages.services_page import ServicesPage, EXPECTED_SERVICES_IOS, EXPECTED_SERVICES_ANDROID
 
 
-BASE_URL = "https://replaceit.ai"
-
-
 def _expected(request):
     platform = request.config.getoption("--platform", default="ios")
     return EXPECTED_SERVICES_ANDROID if platform == "android" else EXPECTED_SERVICES_IOS
@@ -13,8 +10,8 @@ def _expected(request):
 @pytest.mark.mobile
 class TestServicesPage:
     @pytest.fixture(autouse=True)
-    def load_page(self, driver, request):
-        driver.get(f"{BASE_URL}/servicios")
+    def load_page(self, driver, request, base_url):
+        driver.get(f"{base_url}/servicios")
         self.services = ServicesPage(driver)
         self.expected = _expected(request)
 
@@ -31,12 +28,12 @@ class TestServicesPage:
         assert len(apply_links) == len(self.expected)
 
     @pytest.mark.parametrize("index", range(len(EXPECTED_SERVICES_ANDROID)))
-    def test_apply_now_navigates_to_contact(self, driver, request, index):
+    def test_apply_now_navigates_to_contact(self, driver, request, base_url, index):
         expected = _expected(request)
         if index >= len(expected):
             pytest.skip("index out of range for this platform")
-        driver.get(f"{BASE_URL}/servicios")
+        driver.get(f"{base_url}/servicios")
         services = ServicesPage(driver)
         services.click_apply_now(index)
-        services.wait_for_url(f"{BASE_URL}/contacto")
-        assert driver.current_url == f"{BASE_URL}/contacto"
+        services.wait_for_url(f"{base_url}/contacto")
+        assert driver.current_url == f"{base_url}/contacto"
